@@ -175,10 +175,19 @@ export default class DataCell extends PureComponent {
     }
   }
 
-  renderViewer(cell, row, col, valueRenderer, valueViewer) {
+  renderViewer(cell, row, col, valueRenderer, valueViewer, selected) {
     const Viewer = cell.valueViewer || valueViewer || ValueViewer;
     const value = renderValue(cell, row, col, valueRenderer);
-    return <Viewer cell={cell} row={row} col={col} value={value} />;
+
+    return (
+      <Viewer
+        cell={cell}
+        row={row}
+        col={col}
+        value={value}
+        selected={selected}
+      />
+    );
   }
 
   render() {
@@ -198,9 +207,9 @@ export default class DataCell extends PureComponent {
     const { updated } = this.state;
 
     const content =
-      this.renderComponent(editing, cell) ||
-      this.renderEditor(editing, cell, row, col, dataEditor) ||
-      this.renderViewer(cell, row, col, valueRenderer, valueViewer);
+      this.renderComponent(editing, cell, selected) ||
+      this.renderEditor(editing, cell, row, col, dataEditor, selected) ||
+      this.renderViewer(cell, row, col, valueRenderer, valueViewer, selected);
 
     const className = [
       cell.className,
