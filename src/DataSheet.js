@@ -53,6 +53,7 @@ export default class DataSheet extends PureComponent {
     this.isEditing = this.isEditing.bind(this);
     this.isClearing = this.isClearing.bind(this);
     this.handleComponentKey = this.handleComponentKey.bind(this);
+    this.customHandleKeyDown = props.customHandleKeyDown;
 
     this.handleKeyboardCellMovement = this.handleKeyboardCellMovement.bind(
       this,
@@ -301,6 +302,10 @@ export default class DataSheet extends PureComponent {
   }
 
   handleKey(e) {
+    const customKeyResult = this.customHandleKeyDown(e);
+    if ((customKeyResult || {}).preventDefault) {
+      return;
+    }
     if (e.isPropagationStopped && e.isPropagationStopped()) {
       return;
     }
