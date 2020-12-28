@@ -9,7 +9,7 @@ export default class BasicSheet extends React.Component {
       grid: [
         [
           { readOnly: true, value: '' },
-          { value: 'A', readOnly: true },
+          { value: 'Aa', readOnly: true },
           { value: 'B', readOnly: true },
           { value: 'C', readOnly: true },
           { value: 'D', readOnly: true },

@@ -35,7 +35,9 @@ export default class Cell extends PureComponent {
         style={style}
         {...attributes}
       >
-        {this.props.children}
+        <div style={{ width: 100 }} className="overflow-hidden">
+          {this.props.children}
+        </div>
       </td>
     );
   }

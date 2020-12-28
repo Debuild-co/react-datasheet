@@ -17,6 +17,8 @@ import {
   DOWN_KEY,
   RIGHT_KEY,
 } from './keys';
+import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
+import List from 'react-virtualized/dist/commonjs/List';
 
 const isEmpty = obj => Object.keys(obj).length === 0;
 
@@ -302,7 +304,9 @@ export default class DataSheet extends PureComponent {
   }
 
   handleKey(e) {
-    const customKeyResult = this.customHandleKeyDown(e);
+    const customKeyResult = this.customHandleKeyDown
+      ? this.customHandleKeyDown(e)
+      : null;
     if ((customKeyResult || {}).preventDefault) {
       return;
     }
@@ -652,6 +656,12 @@ export default class DataSheet extends PureComponent {
       overflow,
       data,
       keyFn,
+      rowHeight = 25,
+      height = 300,
+      noRowsRenderer,
+      scrollingRenderer,
+      scrollToIndex,
+      overscanRowCount = 10,
     } = this.props;
     const { forceEdit } = this.state;
     return (
@@ -669,7 +679,82 @@ export default class DataSheet extends PureComponent {
             .filter(a => a)
             .join(' ')}
         >
-          {data.map((row, i) => (
+          <AutoSizer disableHeight>
+            {({ width }) => (
+              <List
+                className={'w-full'}
+                height={height}
+                overscanRowCount={overscanRowCount}
+                noRowsRenderer={
+                  noRowsRenderer ||
+                  (props => {
+                    return <div>no rows</div>;
+                  })
+                }
+                rowCount={data.length}
+                rowHeight={rowHeight}
+                rowRenderer={({ index: i, isScrolling, key, style }) => {
+                  if (isScrolling) {
+                    return scrollingRenderer ? (
+                      scrollingRenderer({ style, rowHeight, i, key })
+                    ) : (
+                      <div> - </div>
+                    );
+                  }
+                  const row = data[i];
+                  return (
+                    <RowRenderer
+                      // key={keyFn ? keyFn(i) : key}
+                      key={key}
+                      row={i}
+                      cells={row}
+                      style={style}
+                    >
+                      {row.map((cell, j) => {
+                        const isEditing = this.isEditing(i, j);
+
+                        return (
+                          <DataCell
+                            key={cell.key ? cell.key : `${i}-${j}`}
+                            row={i}
+                            col={j}
+                            cell={{ ...cell }}
+                            forceEdit={false}
+                            onMouseDown={this.onMouseDown}
+                            onMouseOver={this.onMouseOver}
+                            onDoubleClick={this.onDoubleClick}
+                            onContextMenu={this.onContextMenu}
+                            onChange={this.onChange}
+                            onRevert={this.onRevert}
+                            onNavigate={this.handleKeyboardCellMovement}
+                            onKey={this.handleKey}
+                            selected={this.isSelected(i, j)}
+                            editing={isEditing}
+                            clearing={this.isClearing(i, j)}
+                            attributesRenderer={attributesRenderer}
+                            cellRenderer={cellRenderer}
+                            valueRenderer={valueRenderer}
+                            dataRenderer={dataRenderer}
+                            valueViewer={valueViewer}
+                            dataEditor={dataEditor}
+                            {...(isEditing
+                              ? {
+                                  forceEdit,
+                                }
+                              : {})}
+                          />
+                        );
+                      })}
+                    </RowRenderer>
+                  );
+                }}
+                scrollToIndex={scrollToIndex}
+                width={width}
+              />
+            )}
+          </AutoSizer>
+
+          {/* {data.map((row, i) => (
             <RowRenderer key={keyFn ? keyFn(i) : i} row={i} cells={row}>
               {row.map((cell, j) => {
                 const isEditing = this.isEditing(i, j);
@@ -706,7 +791,7 @@ export default class DataSheet extends PureComponent {
                 );
               })}
             </RowRenderer>
-          ))}
+          ))} */}
         </SheetRenderer>
       </span>
     );
