@@ -89,12 +89,21 @@ export default class DataSheet extends PureComponent {
     // keyboard events when displaying components
     this.dgDom &&
       this.dgDom.addEventListener('keydown', this.handleComponentKey);
+    if (
+      this.props.positionToScrollBackTo.current &&
+      this.props.virtualRef.current
+    ) {
+      this.props.virtualRef.current.scrollToPosition(
+        this.props.positionToScrollBackTo.current,
+      );
+    }
   }
 
   componentWillUnmount() {
     this.dgDom &&
       this.dgDom.removeEventListener('keydown', this.handleComponentKey);
     this.removeAllListeners();
+    this.props.saveScrollTop(this.scrollTop);
   }
 
   isSelectionControlled() {
@@ -642,6 +651,8 @@ export default class DataSheet extends PureComponent {
     return this.state.clear.i === i && this.state.clear.j === j;
   }
   onScroll({ clientHeight, scrollHeight, scrollTop }) {
+    this.scrollTop = scrollTop;
+    // console.log(scrollTop);
     if (this.shouldCalculate) {
       this.speedPer200ms = Math.abs(scrollTop - this.previousST);
       this.previousST = scrollTop;
@@ -685,6 +696,8 @@ export default class DataSheet extends PureComponent {
       loadingRenderer,
       speedThreshold = 100,
       speedUnit = 200,
+      scrollTop,
+      virtualRef,
     } = this.props;
     const { forceEdit } = this.state;
     return (
@@ -776,7 +789,9 @@ export default class DataSheet extends PureComponent {
                     </RowRenderer>
                   );
                 }}
+                ref={virtualRef}
                 scrollToIndex={scrollToIndex}
+                scrollTop={scrollTop}
                 width={width}
               />
             )}
