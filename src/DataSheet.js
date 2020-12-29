@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Sheet from './Sheet';
 import Row from './Row';
@@ -641,6 +641,26 @@ export default class DataSheet extends PureComponent {
   isClearing(i, j) {
     return this.state.clear.i === i && this.state.clear.j === j;
   }
+  onScroll({ clientHeight, scrollHeight, scrollTop }) {
+    if (this.shouldCalculate) {
+      this.speedPer200ms = Math.abs(scrollTop - this.previousST);
+      this.previousST = scrollTop;
+      this.shouldCalculate = false;
+      // console.log(this.speedPer200ms);
+    } else if (!this.scrollSpeedInterval) {
+      this.scrollSpeedInterval = setInterval(
+        (() => {
+          if (this.shouldCalculate) {
+            clearInterval(this.scrollSpeedInterval);
+            this.scrollSpeedInterval = null;
+            // console.log('reset interval');
+          }
+          this.shouldCalculate = true;
+        }).bind(this),
+        this.props.speedUnit,
+      );
+    }
+  }
 
   render() {
     const {
@@ -659,9 +679,12 @@ export default class DataSheet extends PureComponent {
       rowHeight = 25,
       height = 300,
       noRowsRenderer,
-      scrollingRenderer,
       scrollToIndex,
       overscanRowCount = 10,
+      onRowsRendered,
+      loadingRenderer,
+      speedThreshold = 100,
+      speedUnit = 200,
     } = this.props;
     const { forceEdit } = this.state;
     return (
@@ -693,12 +716,17 @@ export default class DataSheet extends PureComponent {
                 }
                 rowCount={data.length}
                 rowHeight={rowHeight}
+                onRowsRendered={onRowsRendered}
+                onScroll={this.onScroll.bind(this)}
                 rowRenderer={({ index: i, isScrolling, key, style }) => {
-                  if (isScrolling) {
-                    return scrollingRenderer ? (
-                      scrollingRenderer({ style, rowHeight, i, key })
+                  if (
+                    isScrolling &&
+                    (this.speedPer200ms || 0) > speedThreshold
+                  ) {
+                    return loadingRenderer ? (
+                      loadingRenderer({ style, rowHeight, i, key })
                     ) : (
-                      <div> - </div>
+                      <div style={style}> - </div>
                     );
                   }
                   const row = data[i];
