@@ -97,6 +97,15 @@ export default class DataSheet extends PureComponent {
         this.props.positionToScrollBackTo.current,
       );
     }
+    const savedState = this.props.sheetState.current;
+    if (savedState) {
+      this._setState(savedState);
+      if (savedState.start) {
+        setTimeout(() => {
+          this.dgDom.focus();
+        }, 1);
+      }
+    }
   }
 
   componentWillUnmount() {
@@ -104,6 +113,9 @@ export default class DataSheet extends PureComponent {
       this.dgDom.removeEventListener('keydown', this.handleComponentKey);
     this.removeAllListeners();
     this.props.saveScrollTop(this.scrollTop);
+    const { start, end } = this.getState();
+    // console.log('State', this.state);
+    this.props.saveSheetState({ start, end, selecting: false });
   }
 
   isSelectionControlled() {
@@ -313,8 +325,9 @@ export default class DataSheet extends PureComponent {
   }
 
   handleKey(e) {
+    // console.log('handle key');
     const customKeyResult = this.customHandleKeyDown
-      ? this.customHandleKeyDown(e)
+      ? this.customHandleKeyDown(e, this)
       : null;
     if ((customKeyResult || {}).preventDefault) {
       return;
@@ -329,6 +342,7 @@ export default class DataSheet extends PureComponent {
     const ctrlKeyPressed = e.ctrlKey || e.metaKey;
     const deleteKeysPressed =
       keyCode === DELETE_KEY || keyCode === BACKSPACE_KEY;
+
     const enterKeyPressed = keyCode === ENTER_KEY;
     const numbersPressed = keyCode >= 48 && keyCode <= 57;
     const lettersPressed = keyCode >= 65 && keyCode <= 90;
