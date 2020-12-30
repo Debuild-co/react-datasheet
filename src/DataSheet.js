@@ -102,7 +102,7 @@ export default class DataSheet extends PureComponent {
       this._setState(savedState);
       if (savedState.start) {
         setTimeout(() => {
-          this.dgDom.focus();
+          this.dgDom && this.dgDom.focus();
         }, 1);
       }
     }
@@ -704,7 +704,7 @@ export default class DataSheet extends PureComponent {
       rowHeight = 25,
       height = 300,
       noRowsRenderer,
-      scrollToIndex,
+
       overscanRowCount = 10,
       onRowsRendered,
       loadingRenderer,
@@ -804,7 +804,6 @@ export default class DataSheet extends PureComponent {
                   );
                 }}
                 ref={virtualRef}
-                scrollToIndex={scrollToIndex}
                 scrollTop={scrollTop}
                 width={width}
               />
