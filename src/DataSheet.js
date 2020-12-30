@@ -6,6 +6,7 @@ import Cell from './Cell';
 import DataCell from './DataCell';
 import DataEditor from './DataEditor';
 import ValueViewer from './ValueViewer';
+import _ from 'underscore';
 import {
   TAB_KEY,
   ENTER_KEY,
@@ -100,7 +101,7 @@ export default class DataSheet extends PureComponent {
     const savedState = this.props.sheetState.current;
     if (savedState) {
       this._setState(savedState);
-      if (savedState.start) {
+      if (savedState.start && !_.isEmpty(savedState.start)) {
         setTimeout(() => {
           this.dgDom && this.dgDom.focus();
         }, 1);
