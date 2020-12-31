@@ -99,9 +99,21 @@ export default class DataSheet extends PureComponent {
       );
     }
     const savedState = this.props.sheetState.current;
-    if (savedState) {
-      this._setState(savedState);
-      if (savedState.start && !_.isEmpty(savedState.start)) {
+    if (savedState.start && !_.isEmpty(savedState.start)) {
+      const { start, end } = savedState;
+      if (this.props.data.length > 0) {
+        //check if selected rows & columns still exist
+        // to avoid selecting starts in none-existent rows & columns
+        const startI = Math.min(start.i, this.props.data.length - 1);
+        const endI = Math.min(end.i, this.props.data.length - 1);
+        const startJ = Math.min(start.j, this.props.data[0].length - 1);
+        const endJ = Math.min(end.j, this.props.data[0].length - 1);
+        const newSavedState = {
+          start: { i: startI, j: startJ },
+          end: { i: endI, j: endJ },
+        };
+        console.log('newSavedState', newSavedState, savedState);
+        this._setState(newSavedState);
         setTimeout(() => {
           this.dgDom && this.dgDom.focus();
         }, 1);
@@ -115,8 +127,9 @@ export default class DataSheet extends PureComponent {
     this.removeAllListeners();
     this.props.saveScrollTop(this.scrollTop);
     const { start, end } = this.getState();
+
     // console.log('State', this.state);
-    this.props.saveSheetState({ start, end, selecting: false });
+    this.props.saveSheetState({ start, end });
   }
 
   isSelectionControlled() {
@@ -336,6 +349,7 @@ export default class DataSheet extends PureComponent {
     if (e.isPropagationStopped && e.isPropagationStopped()) {
       return;
     }
+
     const keyCode = e.which || e.keyCode;
     const { start, end, editing } = this.getState();
     const isEditing = editing && !isEmpty(editing);
@@ -349,6 +363,12 @@ export default class DataSheet extends PureComponent {
     const lettersPressed = keyCode >= 65 && keyCode <= 90;
     const latin1Supplement = keyCode >= 160 && keyCode <= 255;
     const numPadKeysPressed = keyCode >= 96 && keyCode <= 105;
+
+    if (!this.props.data[start.i]) {
+      //avoid crash if selected rows no longer exist
+      return;
+    }
+
     const currentCell = !noCellsSelected && this.props.data[start.i][start.j];
     const equationKeysPressed =
       [
