@@ -172,10 +172,15 @@ export default class DataSheet extends PureComponent {
 
   pageClick(e) {
     if (this.props.disablePageClick) return;
+
     const element = this.dgDom;
-    if (!element.contains(e.target)) {
+
+    if (!element || !element.contains(e.target)) {
       this.setState(this.defaultState);
       this.removeAllListeners();
+      if (this.props.onClickOutside) {
+        this.props.onClickOutside();
+      }
     }
   }
 
@@ -626,13 +631,16 @@ export default class DataSheet extends PureComponent {
 
     // Keep listening to mouse if user releases the mouse (dragging outside)
     document.addEventListener('mouseup', this.onMouseUp);
-    // Listen for any outside mouse clicks
-    document.addEventListener('mousedown', this.pageClick);
-
+    this.listeToMouseDown();
     // Cut, copy and paste event handlers
     document.addEventListener('cut', this.handleCut);
     document.addEventListener('copy', this.handleCopy);
     document.addEventListener('paste', this.handlePaste);
+  }
+
+  listeToMouseDown() {
+    // Listen for any outside mouse clicks
+    document.addEventListener('mousedown', this.pageClick);
   }
 
   onMouseOver(i, j) {
