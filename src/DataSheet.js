@@ -98,9 +98,14 @@ export default class DataSheet extends PureComponent {
         this.props.positionToScrollBackTo.current,
       );
     }
-    const savedState = this.props.sheetState.current;
-    if (savedState.start && !_.isEmpty(savedState.start)) {
-      const { start, end } = savedState;
+    const savedState = this.props.sheetSelectionState.current;
+
+    if ((savedState || {}).start && !_.isEmpty(savedState.start)) {
+      const { start, end, shouldStartWithNewState } = savedState;
+      if (shouldStartWithNewState) {
+        this.props.saveSheetSelectionState({});
+        return;
+      }
       if (this.props.data.length > 0) {
         //check if selected rows & columns still exist
         // to avoid selecting starts in none-existent rows & columns
@@ -129,7 +134,7 @@ export default class DataSheet extends PureComponent {
     const { start, end } = this.getState();
 
     // console.log('State', this.state);
-    this.props.saveSheetState({ start, end });
+    this.props.saveSheetSelectionState({ start, end });
   }
 
   isSelectionControlled() {
