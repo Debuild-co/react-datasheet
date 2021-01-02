@@ -77,6 +77,7 @@ export default class DataSheet extends PureComponent {
   }
 
   removeAllListeners() {
+    this.mousedownIsAttached = false;
     document.removeEventListener('mousedown', this.pageClick);
     document.removeEventListener('mouseup', this.onMouseUp);
     document.removeEventListener('cut', this.handleCut);
@@ -109,6 +110,7 @@ export default class DataSheet extends PureComponent {
       if (this.props.data.length > 0) {
         //check if selected rows & columns still exist
         // to avoid selecting starts in none-existent rows & columns
+
         const startI = Math.min(start.i, this.props.data.length - 1);
         const endI = Math.min(end.i, this.props.data.length - 1);
         const startJ = Math.min(start.j, this.props.data[0].length - 1);
@@ -121,8 +123,12 @@ export default class DataSheet extends PureComponent {
         this._setState(newSavedState);
         setTimeout(() => {
           this.dgDom && this.dgDom.focus();
+          this.listenToMouseDown();
         }, 1);
       }
+    }
+    if (this.props.shouldAttachMouseoutOnMount) {
+      this.listenToMouseDown();
     }
   }
 
@@ -631,16 +637,19 @@ export default class DataSheet extends PureComponent {
 
     // Keep listening to mouse if user releases the mouse (dragging outside)
     document.addEventListener('mouseup', this.onMouseUp);
-    this.listeToMouseDown();
+    this.listenToMouseDown();
     // Cut, copy and paste event handlers
     document.addEventListener('cut', this.handleCut);
     document.addEventListener('copy', this.handleCopy);
     document.addEventListener('paste', this.handlePaste);
   }
 
-  listeToMouseDown() {
-    // Listen for any outside mouse clicks
-    document.addEventListener('mousedown', this.pageClick);
+  listenToMouseDown() {
+    if (!this.mousedownIsAttached) {
+      this.mousedownIsAttached = true;
+      // Listen for any outside mouse clicks
+      document.addEventListener('mousedown', this.pageClick);
+    }
   }
 
   onMouseOver(i, j) {
