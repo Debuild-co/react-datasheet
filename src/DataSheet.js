@@ -236,15 +236,11 @@ export default class DataSheet extends PureComponent {
             range(start.j, end.j)
               .map(j => {
                 const cell = data[i][j];
-                const value = dataRenderer ? dataRenderer(cell, i, j) : null;
-                if (
-                  value === '' ||
-                  value === null ||
-                  typeof value === 'undefined'
-                ) {
-                  return valueRenderer(cell, i, j);
+                if (this.props.transformCopiedValue) {
+                  return this.props.transformCopiedValue(cell, i, j);
+                } else {
+                  return valueRenderer(cell, i, j) || dataRenderer(cell, i, j);
                 }
-                return value;
               })
               .join('\t'),
           )
@@ -280,9 +276,12 @@ export default class DataSheet extends PureComponent {
       if (onCellsChanged) {
         const additions = [];
         pasteData.forEach((row, i) => {
-          row.forEach((value, j) => {
+          row.forEach((_value, j) => {
             end = { i: start.i + i, j: start.j + j };
             const cell = data[end.i] && data[end.i][end.j];
+            const value = this.props.parsePasteValue
+              ? this.props.parsePasteValue(_value, end.j)
+              : _value;
             if (!cell) {
               additions.push({ row: end.i, col: end.j, value });
             } else if (!cell.readOnly) {
